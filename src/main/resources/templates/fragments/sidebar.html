@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<aside th:fragment="sidebar(active)" class="sidebar">
+    <div class="sidebar-brand">
+        <div class="mark">SC</div>
+        <div>
+            <div class="name">Society Complaints</div>
+            <div class="subtitle">Maintenance Desk</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+
+        <div sec:authorize="hasRole('RESIDENT')">
+            <div class="sidebar-section-label">Resident</div>
+            <a th:href="@{/resident/dashboard}" class="sidebar-link" th:classappend="${active == 'dashboard'} ? 'active' : ''">
+                <span class="icon">&#8962;</span> Dashboard
+            </a>
+            <a th:href="@{/resident/complaints/new}" class="sidebar-link" th:classappend="${active == 'new-complaint'} ? 'active' : ''">
+                <span class="icon">&#10010;</span> Raise Complaint
+            </a>
+        </div>
+
+        <div sec:authorize="hasRole('WORKER')">
+            <div class="sidebar-section-label">Worker</div>
+            <a th:href="@{/worker/dashboard}" class="sidebar-link" th:classappend="${active == 'dashboard'} ? 'active' : ''">
+                <span class="icon">&#8962;</span> My Assignments
+            </a>
+        </div>
+
+        <div sec:authorize="hasRole('ADMIN')">
+            <div class="sidebar-section-label">Admin</div>
+            <a th:href="@{/admin/dashboard}" class="sidebar-link" th:classappend="${active == 'dashboard'} ? 'active' : ''">
+                <span class="icon">&#8962;</span> Dashboard
+            </a>
+            <a th:href="@{/admin/complaints/overdue}" class="sidebar-link" th:classappend="${active == 'overdue'} ? 'active' : ''">
+                <span class="icon">&#9888;</span> Overdue (SLA)
+            </a>
+            <div class="sidebar-section-label">Directory</div>
+            <a th:href="@{/admin/workers}" class="sidebar-link" th:classappend="${active == 'workers'} ? 'active' : ''">
+                <span class="icon">&#128119;</span> Workers
+            </a>
+            <a th:href="@{/admin/residents}" class="sidebar-link" th:classappend="${active == 'residents'} ? 'active' : ''">
+                <span class="icon">&#127968;</span> Residents
+            </a>
+            <a th:href="@{/admin/admins}" class="sidebar-link" th:classappend="${active == 'admins'} ? 'active' : ''">
+                <span class="icon">&#128081;</span> Admins
+            </a>
+        </div>
+
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user" sec:authorize="isAuthenticated()">
+            <div class="avatar" th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">U</div>
+            <div style="overflow:hidden;">
+                <div class="uname" sec:authentication="name">user@example.com</div>
+                <div class="urole">
+                    <span sec:authorize="hasRole('ADMIN')">Admin</span>
+                    <span sec:authorize="hasRole('RESIDENT')">Resident</span>
+                    <span sec:authorize="hasRole('WORKER')">Worker</span>
+                </div>
+            </div>
+        </div>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn-logout">Sign out</button>
+        </form>
+    </div>
+</aside>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in — Society Complaints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <div class="mark">SC</div>
+            <div>
+                <div class="name">Society Complaints</div>
+                <div class="subtitle">Maintenance Desk</div>
+            </div>
+        </div>
+
+        <h2 style="font-size:19px; margin: 0 0 4px;">Sign in to your account</h2>
+        <p style="color:var(--text-2); font-size:13.5px; margin:0 0 22px;">Track and manage maintenance requests for your society.</p>
+
+        <div th:if="${param.error}" class="alert alert-danger">Invalid email or password. Please try again.</div>
+        <div th:if="${param.logout}" class="alert alert-success">You've been signed out successfully.</div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <form th:action="@{/login}" method="post">
+            <div style="margin-bottom:16px;">
+                <label class="form-label">Email address</label>
+                <input type="email" name="username" class="form-control" placeholder="you@example.com" required autofocus>
+            </div>
+            <div style="margin-bottom:20px;">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" style="padding:11px;">Sign in</button>
+        </form>
+
+        <p class="auth-footer-link">Don't have an account? <a th:href="@{/register}">Register here</a></p>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Raise a Complaint — Society Complaints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar('new-complaint')}"></div>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div style="display:flex; align-items:center;">
+                <div class="mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
+                <div>
+                    <h1 class="page-title">Raise a complaint</h1>
+                    <p class="page-subtitle">Tell us what's wrong — we'll route it to the right person</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" style="max-width: 640px;">
+            <div class="panel-body">
+                <form th:action="@{/resident/complaints/new}" th:object="${complaintDto}" method="post">
+
+                    <div style="margin-bottom:16px;">
+                        <label class="form-label">Title</label>
+                        <input type="text" th:field="*{title}" class="form-control" placeholder="e.g. Kitchen tap leaking continuously">
+                        <div class="field-error" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+                    </div>
+
+                    <div style="margin-bottom:16px;">
+                        <label class="form-label">Description</label>
+                        <textarea th:field="*{description}" class="form-control" rows="4" placeholder="Describe the issue in detail..."></textarea>
+                        <div class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+                        <div>
+                            <label class="form-label">Category</label>
+                            <select th:field="*{category}" class="form-select">
+                                <option value="">-- Select category --</option>
+                                <option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}"></option>
+                            </select>
+                            <div class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+                        </div>
+                        <div>
+                            <label class="form-label">Priority</label>
+                            <select th:field="*{priority}" class="form-select">
+                                <option value="">-- Select priority --</option>
+                                <option th:each="p : ${priorities}" th:value="${p}" th:text="${p}"></option>
+                            </select>
+                            <div class="field-error" th:if="${#fields.hasErrors('priority')}" th:errors="*{priority}"></div>
+                            <div class="form-hint">Critical = 4hr SLA · High = 24hr · Medium = 48hr · Low = 72hr</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:20px;">
+                        <label class="form-label">Flat number <span style="color:var(--text-3); font-weight:400;">(optional — defaults to your registered flat)</span></label>
+                        <input type="text" th:field="*{flatNumber}" class="form-control" placeholder="e.g. A-204">
+                    </div>
+
+                    <div class="gap-form">
+                        <button type="submit" class="btn btn-primary">Submit complaint</button>
+                        <a th:href="@{/resident/dashboard}" class="btn btn-outline">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Complaint Details — Society Complaints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div style="display:flex; align-items:center;">
+                <div class="mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
+                <div>
+                    <a th:href="@{/resident/dashboard}" style="font-size:13px; color:var(--text-2);">&larr; Back to dashboard</a>
+                    <h1 class="page-title" style="margin-top:4px;">Complaint #<span th:text="${complaint.id}"></span></h1>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+        <div class="two-col">
+            <div>
+                <div class="panel" style="margin-bottom:18px;">
+                    <div class="panel-header">
+                        <span th:text="${complaint.title}"></span>
+                        <div>
+                            <span th:replace="~{fragments/badges :: statusBadge(${complaint.status})}"></span>
+                            <span th:if="${complaint.overdue}" th:replace="~{fragments/badges :: overdueBadge}"></span>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <p style="margin-top:0; color:var(--text-2);" th:text="${complaint.description}"></p>
+                        <hr style="border-color:var(--border); margin: 16px 0;">
+                        <div class="meta-grid">
+                            <div>
+                                <div class="meta-label">Category</div>
+                                <div class="meta-value" th:text="${complaint.category}"></div>
+                            </div>
+                            <div>
+                                <div class="meta-label">Priority</div>
+                                <div class="meta-value"><span th:replace="~{fragments/badges :: priorityBadge(${complaint.priority})}"></span></div>
+                            </div>
+                            <div>
+                                <div class="meta-label">Flat</div>
+                                <div class="meta-value" th:text="${complaint.flatNumber}"></div>
+                            </div>
+                            <div>
+                                <div class="meta-label">Raised on</div>
+                                <div class="meta-value" th:text="${#temporals.format(complaint.createdAt, 'dd MMM yyyy, hh:mm a')}"></div>
+                            </div>
+                            <div>
+                                <div class="meta-label">SLA deadline</div>
+                                <div class="meta-value" th:text="${#temporals.format(complaint.slaDeadline, 'dd MMM yyyy, hh:mm a')}"></div>
+                            </div>
+                            <div th:if="${complaint.worker != null}">
+                                <div class="meta-label">Assigned to</div>
+                                <div class="meta-value" th:text="${complaint.worker.fullName + ' (' + complaint.worker.specialization + ')'}"></div>
+                            </div>
+                        </div>
+
+                        <div th:if="${complaint.status.name() == 'RESOLVED' || complaint.status.name() == 'CLOSED'}" style="margin-top:18px;">
+                            <form th:action="@{/resident/complaints/{id}/reopen(id=${complaint.id})}" method="post"
+                                  onsubmit="return confirm('Reopen this complaint? This will notify the admin again.');">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Not satisfied? Reopen complaint</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">Status timeline</div>
+                <div class="panel-body">
+                    <div th:each="h, iter : ${complaint.statusHistory}" class="tl-item">
+                        <div class="tl-title" th:text="${h.newStatus}"></div>
+                        <div class="tl-meta" th:text="${#temporals.format(h.changedAt, 'dd MMM, hh:mm a')}"></div>
+                        <div class="tl-remarks" th:text="${h.remarks}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

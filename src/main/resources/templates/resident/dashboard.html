@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard — Society Complaints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar('dashboard')}"></div>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div style="display:flex; align-items:center;">
+                <div class="mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
+                <div>
+                    <h1 class="page-title">Welcome back, <span th:text="${resident.fullName}"></span></h1>
+                    <p class="page-subtitle">Flat <span th:text="${resident.flatNumber}"></span> · Track and manage your maintenance requests</p>
+                </div>
+            </div>
+            <a th:href="@{/resident/complaints/new}" class="btn btn-primary">+ Raise complaint</a>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${param.error}" class="alert alert-danger">You are not authorized to view that complaint.</div>
+
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-label">Active complaints</div>
+                <div class="stat-value c-accent" th:text="${openCount}"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Resolved</div>
+                <div class="stat-value c-success" th:text="${resolvedCount}"></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Overdue (SLA breached)</div>
+                <div class="stat-value c-danger" th:text="${overdueCount}"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">My Complaints</div>
+            <div class="panel-body flush">
+                <div th:if="${complaints.isEmpty()}" class="empty-state">
+                    <div class="icon">&#128221;</div>
+                    <div>You haven't raised any complaints yet.</div>
+                </div>
+                <table class="data-table" th:unless="${complaints.isEmpty()}">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Raised on</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="c : ${complaints}" th:class="${c.overdue} ? 'row-overdue' : ''">
+                        <td th:text="${'#' + c.id}"></td>
+                        <td th:text="${c.title}"></td>
+                        <td th:text="${c.category}"></td>
+                        <td><span th:replace="~{fragments/badges :: priorityBadge(${c.priority})}"></span></td>
+                        <td>
+                            <span th:replace="~{fragments/badges :: statusBadge(${c.status})}"></span>
+                            <span th:if="${c.overdue}" th:replace="~{fragments/badges :: overdueBadge}"></span>
+                        </td>
+                        <td th:text="${#temporals.format(c.createdAt, 'dd MMM, hh:mm a')}"></td>
+                        <td>
+                            <a th:href="@{/resident/complaints/{id}(id=${c.id})}" class="btn btn-outline btn-sm">View</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

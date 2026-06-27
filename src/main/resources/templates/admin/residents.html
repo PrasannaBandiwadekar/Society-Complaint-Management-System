@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Residents — Society Complaints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-shell">
+    <div th:replace="~{fragments/sidebar :: sidebar('residents')}"></div>
+
+    <main class="main-content">
+        <div class="topbar">
+            <div style="display:flex; align-items:center;">
+                <div class="mobile-toggle" onclick="toggleSidebar()">&#9776;</div>
+                <div>
+                    <a th:href="@{/admin/dashboard}" style="font-size:13px; color:var(--text-2);">&larr; Back to dashboard</a>
+                    <h1 class="page-title" style="margin-top:4px;">Registered Residents</h1>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-body flush">
+                <div th:if="${residents.isEmpty()}" class="empty-state">
+                    <div class="icon">&#127968;</div>
+                    <div>No residents have registered yet.</div>
+                </div>
+                <table class="data-table" th:unless="${residents.isEmpty()}">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Flat number</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="r : ${residents}">
+                        <td th:text="${r.fullName}"></td>
+                        <td th:text="${r.email}"></td>
+                        <td th:text="${r.phoneNumber}"></td>
+                        <td th:text="${r.flatNumber}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

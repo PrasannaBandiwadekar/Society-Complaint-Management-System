@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Register — Society Complaints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;650;700&display=swap" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body>
+
+<div class="auth-page">
+    <div class="auth-card wide">
+        <div class="auth-brand">
+            <div class="mark">SC</div>
+            <div>
+                <div class="name">Society Complaints</div>
+                <div class="subtitle">Maintenance Desk</div>
+            </div>
+        </div>
+
+        <h2 style="font-size:19px; margin: 0 0 4px;">Create your account</h2>
+        <p style="color:var(--text-2); font-size:13.5px; margin:0 0 22px;">Register as a resident to raise complaints, or as a worker to receive assignments.</p>
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/register}" th:object="${registerDto}" method="post" id="registerForm">
+
+            <div style="margin-bottom:16px;">
+                <label class="form-label">Full name</label>
+                <input type="text" th:field="*{fullName}" class="form-control" placeholder="John Doe">
+                <div class="field-error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="form-label">Email</label>
+                <input type="email" th:field="*{email}" class="form-control" placeholder="you@example.com">
+                <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px;">
+                <div>
+                    <label class="form-label">Password</label>
+                    <input type="password" th:field="*{password}" class="form-control" placeholder="At least 6 characters">
+                    <div class="field-error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+                <div>
+                    <label class="form-label">Phone number</label>
+                    <input type="text" th:field="*{phoneNumber}" class="form-control" placeholder="9876543210">
+                    <div class="field-error" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="form-label">Register as</label>
+                <select th:field="*{role}" class="form-select" id="roleSelect" onchange="toggleRoleFields()">
+                    <option value="">-- Select role --</option>
+                    <option value="RESIDENT">Resident</option>
+                    <option value="WORKER">Worker / Vendor</option>
+                </select>
+                <div class="form-hint">Admin accounts are created by an existing admin, not through self-registration.</div>
+                <div class="field-error" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+            </div>
+
+            <div style="margin-bottom:16px;" id="flatNumberField">
+                <label class="form-label">Flat number</label>
+                <input type="text" th:field="*{flatNumber}" class="form-control" placeholder="e.g. A-204">
+                <div class="field-error" th:if="${#fields.hasErrors('flatNumber')}" th:errors="*{flatNumber}"></div>
+            </div>
+
+            <div style="margin-bottom:16px;" id="specializationField">
+                <label class="form-label">Specialization</label>
+                <select th:field="*{specialization}" class="form-select">
+                    <option value="">-- Select specialization --</option>
+                    <option value="Plumber">Plumber</option>
+                    <option value="Electrician">Electrician</option>
+                    <option value="Carpenter">Carpenter</option>
+                    <option value="Cleaner">Cleaner</option>
+                    <option value="Security">Security</option>
+                    <option value="General Maintenance">General Maintenance</option>
+                </select>
+                <div class="field-error" th:if="${#fields.hasErrors('specialization')}" th:errors="*{specialization}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" style="padding:11px; margin-top:6px;">Create account</button>
+        </form>
+
+        <p class="auth-footer-link">Already have an account? <a th:href="@{/login}">Sign in</a></p>
+    </div>
+</div>
+
+<script>
+    function toggleRoleFields() {
+        const role = document.getElementById('roleSelect').value;
+        document.getElementById('flatNumberField').style.display = (role === 'RESIDENT') ? 'block' : 'none';
+        document.getElementById('specializationField').style.display = (role === 'WORKER') ? 'block' : 'none';
+    }
+    document.addEventListener('DOMContentLoaded', toggleRoleFields);
+</script>
+
+</body>
+</html>

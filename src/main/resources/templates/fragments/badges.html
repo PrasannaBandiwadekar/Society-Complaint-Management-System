@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<span th:fragment="statusBadge(status)" th:switch="${status?.name()}">
+    <span th:case="'OPEN'" class="badge badge-open"><span class="dot"></span>Open</span>
+    <span th:case="'ASSIGNED'" class="badge badge-assigned"><span class="dot"></span>Assigned</span>
+    <span th:case="'IN_PROGRESS'" class="badge badge-progress"><span class="dot"></span>In Progress</span>
+    <span th:case="'RESOLVED'" class="badge badge-resolved"><span class="dot"></span>Resolved</span>
+    <span th:case="'CLOSED'" class="badge badge-closed"><span class="dot"></span>Closed</span>
+    <span th:case="'REOPENED'" class="badge badge-reopened"><span class="dot"></span>Reopened</span>
+</span>
+
+<span th:fragment="priorityBadge(priority)" th:switch="${priority?.name()}">
+    <span th:case="'LOW'" class="badge badge-priority-low">Low</span>
+    <span th:case="'MEDIUM'" class="badge badge-priority-medium">Medium</span>
+    <span th:case="'HIGH'" class="badge badge-priority-high">High</span>
+    <span th:case="'CRITICAL'" class="badge badge-priority-critical">Critical</span>
+</span>
+
+<span th:fragment="overdueBadge" class="badge badge-overdue"><span class="dot"></span>Overdue</span>
+
+</body>
+</html>
