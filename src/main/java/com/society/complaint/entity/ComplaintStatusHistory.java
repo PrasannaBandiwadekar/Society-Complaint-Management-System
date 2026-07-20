@@ -11,7 +11,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-
+import java.io.Serializable;
 /**
  * Audit trail entity. Every time a complaint's status changes,
  * a new row is inserted here so the full history can be displayed
@@ -29,7 +29,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ComplaintStatusHistory {
+public class ComplaintStatusHistory implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

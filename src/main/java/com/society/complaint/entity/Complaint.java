@@ -16,7 +16,7 @@ import lombok.ToString;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.io.Serializable;
 /**
  * See the comment on User.java for why @Data is avoided here.
  * Excluding `resident`, `worker`, and `statusHistory` from toString() is essential:
@@ -33,7 +33,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Complaint {
+public class Complaint implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -15,7 +15,6 @@
     <artifactId>complaint-management-system</artifactId>
     <version>1.0.0</version>
     <name>Society Complaint Management System</name>
-    <description>Full-stack Spring Boot MVC project for tracking apartment/society maintenance complaints with SLA tracking and email notifications</description>
     <packaging>jar</packaging>
 
     <properties>
@@ -29,13 +28,13 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Thymeleaf templating -->
+        <!-- Thymeleaf -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!-- Thymeleaf + Spring Security dialect (for sec:authorize in templates) -->
+        <!-- Thymeleaf + Spring Security dialect -->
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
@@ -72,6 +71,51 @@
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
 
+        <!-- ============================================================
+             JWT — for REST API authentication
+             jjwt-api: the interface, jjwt-impl + jjwt-jackson: the implementation
+             ============================================================ -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>0.12.6</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>0.12.6</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ============================================================
+             KAFKA — async event-driven email notifications
+             spring-kafka gives us @KafkaListener, KafkaTemplate, etc.
+             ============================================================ -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- ============================================================
+             REDIS — session store + dashboard stats caching
+             spring-boot-starter-data-redis: RedisTemplate, @Cacheable, etc.
+             spring-session-data-redis: stores HTTP sessions in Redis
+             ============================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -80,7 +124,7 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- DevTools (auto-restart on change, helpful during dev) -->
+        <!-- DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -97,6 +141,11 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

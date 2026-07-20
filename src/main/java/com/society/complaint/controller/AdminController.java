@@ -7,6 +7,7 @@ import com.society.complaint.entity.User;
 import com.society.complaint.enums.ComplaintStatus;
 import com.society.complaint.enums.Role;
 import com.society.complaint.service.ComplaintService;
+import com.society.complaint.service.DashboardStatsService;
 import com.society.complaint.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,18 +27,22 @@ public class AdminController {
 
     private final ComplaintService complaintService;
     private final UserService userService;
+    private final DashboardStatsService dashboardStatsService; // Redis-cached stats
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         List<Complaint> allComplaints = complaintService.getAllComplaints();
 
+        // Load counts from Redis cache (or DB on first hit / after eviction)
+        DashboardStatsService.DashboardStats stats = dashboardStatsService.getStats();
+
         model.addAttribute("complaints", allComplaints);
-        model.addAttribute("totalCount", allComplaints.size());
-        model.addAttribute("openCount", complaintService.countByStatus(ComplaintStatus.OPEN));
-        model.addAttribute("assignedCount", complaintService.countByStatus(ComplaintStatus.ASSIGNED));
-        model.addAttribute("inProgressCount", complaintService.countByStatus(ComplaintStatus.IN_PROGRESS));
-        model.addAttribute("resolvedCount", complaintService.countByStatus(ComplaintStatus.RESOLVED));
-        model.addAttribute("overdueCount", complaintService.countOverdue());
+        model.addAttribute("totalCount", stats.getTotal());
+        model.addAttribute("openCount", stats.getOpen());
+        model.addAttribute("assignedCount", stats.getAssigned());
+        model.addAttribute("inProgressCount", stats.getInProgress());
+        model.addAttribute("resolvedCount", stats.getResolved());
+        model.addAttribute("overdueCount", stats.getOverdue());
 
         return "admin/dashboard";
     }
@@ -53,7 +58,6 @@ public class AdminController {
     public String viewComplaint(@PathVariable Long id, Model model) {
         Complaint complaint = complaintService.getById(id);
         List<User> workers = userService.getAllWorkers();
-
         model.addAttribute("complaint", complaint);
         model.addAttribute("workers", workers);
         return "admin/complaint-detail";
@@ -61,24 +65,28 @@ public class AdminController {
 
     @PostMapping("/complaints/{id}/assign")
     public String assignWorker(@PathVariable Long id,
-                                @RequestParam Long workerId,
-                                @AuthenticationPrincipal CustomUserDetails principal,
-                                RedirectAttributes redirectAttributes) {
+                               @RequestParam Long workerId,
+                               @AuthenticationPrincipal CustomUserDetails principal,
+                               RedirectAttributes redirectAttributes) {
 
         complaintService.assignWorker(id, workerId, principal.getUser().getEmail());
-        redirectAttributes.addFlashAttribute("successMessage", "Worker assigned successfully. Notifications sent.");
+        dashboardStatsService.evictStatsCache(); // invalidate Redis cache after change
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Worker assigned successfully. Notifications sent via Kafka.");
         return "redirect:/admin/complaints/" + id;
     }
 
     @PostMapping("/complaints/{id}/status")
     public String updateStatus(@PathVariable Long id,
-                                @RequestParam ComplaintStatus status,
-                                @RequestParam(required = false) String remarks,
-                                @AuthenticationPrincipal CustomUserDetails principal,
-                                RedirectAttributes redirectAttributes) {
+                               @RequestParam ComplaintStatus status,
+                               @RequestParam(required = false) String remarks,
+                               @AuthenticationPrincipal CustomUserDetails principal,
+                               RedirectAttributes redirectAttributes) {
 
         complaintService.updateStatus(id, status, remarks, principal.getUser().getEmail());
-        redirectAttributes.addFlashAttribute("successMessage", "Status updated to " + status);
+        dashboardStatsService.evictStatsCache(); // invalidate Redis cache after change
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Status updated to " + status);
         return "redirect:/admin/complaints/" + id;
     }
 
@@ -94,11 +102,6 @@ public class AdminController {
         return "admin/residents";
     }
 
-    // ===================== Admin management (multiple admins) =====================
-    // Only an already-authenticated admin can reach these (/admin/** is restricted
-    // to ROLE_ADMIN in SecurityConfig), which is the correct way to let there be
-    // more than one admin without exposing ADMIN as a public self-registration option.
-
     @GetMapping("/admins")
     public String listAdmins(Model model) {
         model.addAttribute("admins", userService.getUsersByRole(Role.ADMIN));
@@ -112,23 +115,21 @@ public class AdminController {
     }
 
     @PostMapping("/admins/new")
-    public String createAdmin(@Valid @ModelAttribute("adminCreateDto") AdminCreateDto adminCreateDto,
-                               BindingResult bindingResult,
-                               Model model,
-                               RedirectAttributes redirectAttributes) {
-
-        if (bindingResult.hasErrors()) {
-            return "admin/new-admin";
-        }
+    public String createAdmin(@Valid @ModelAttribute("adminCreateDto") AdminCreateDto dto,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) return "admin/new-admin";
 
         try {
-            userService.createAdmin(adminCreateDto);
+            userService.createAdmin(dto);
         } catch (IllegalArgumentException ex) {
             model.addAttribute("errorMessage", ex.getMessage());
             return "admin/new-admin";
         }
 
-        redirectAttributes.addFlashAttribute("successMessage", "New admin account created successfully.");
+        redirectAttributes.addFlashAttribute("successMessage",
+                "New admin account created successfully.");
         return "redirect:/admin/admins";
     }
 }

@@ -4,6 +4,7 @@ import com.society.complaint.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import java.io.Serializable;
 
 import java.util.Collection;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
  * Adapts our domain User entity to Spring Security's UserDetails contract.
  * Role is prefixed with "ROLE_" as required by Spring Security's hasRole() checks.
  */
-public class CustomUserDetails implements UserDetails {
+public class CustomUserDetails implements UserDetails, Serializable {
 
     private final User user;
 

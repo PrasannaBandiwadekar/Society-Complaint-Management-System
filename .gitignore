@@ -8,4 +8,6 @@ target/
 HELP.md
 *.jar
 *.war
+logs/
 src/main/resources/application.properties
+.env
