@@ -15,6 +15,11 @@ import org.springframework.stereotype.Service;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.mail.javamail.JavaMailSender;
+
+
+@ConditionalOnBean(JavaMailSender.class)
 @Service
 @RequiredArgsConstructor
 @Slf4j
