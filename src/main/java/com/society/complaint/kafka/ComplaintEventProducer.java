@@ -2,6 +2,7 @@ package com.society.complaint.kafka;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,9 @@ import java.util.concurrent.CompletableFuture;
  * KafkaTemplate is Spring's wrapper around the raw Kafka client — it
  * handles serialisation, connection pooling, and retries automatically.
  */
+
 @Component
+@Profile("!prod")
 @RequiredArgsConstructor
 @Slf4j
 public class ComplaintEventProducer {

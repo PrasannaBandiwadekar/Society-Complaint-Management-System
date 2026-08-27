@@ -3,6 +3,7 @@ package com.society.complaint.kafka;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Component;
  * will split events between them automatically (load balancing).
  */
 @Component
+@Profile("!prod")
 @RequiredArgsConstructor
 @Slf4j
 public class EmailNotificationConsumer {
