@@ -3,11 +3,9 @@ package com.society.complaint;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 @SpringBootApplication
-@EnableScheduling   // SLA-checking @Scheduled job
 @EnableAsync        // kept for any remaining @Async tasks
 @EnableRedisHttpSession(maxInactiveIntervalInSeconds = 3600)
 // ^^^^ Stores HTTP sessions in Redis instead of in app memory.
