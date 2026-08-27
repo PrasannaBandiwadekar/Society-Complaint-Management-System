@@ -11,6 +11,7 @@ import com.society.complaint.kafka.ComplaintEventProducer;
 import com.society.complaint.repository.ComplaintRepository;
 import com.society.complaint.repository.UserRepository;
 import com.society.complaint.service.ComplaintService;
+import com.society.complaint.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,8 @@ public class ComplaintServiceImpl implements ComplaintService {
 
     private final ComplaintRepository complaintRepository;
     private final UserRepository userRepository;
+
+    private final EmailService emailService;
     @Autowired(required = false)
     private ComplaintEventProducer eventProducer;
     private static final DateTimeFormatter FORMATTER =
@@ -61,21 +64,19 @@ public class ComplaintServiceImpl implements ComplaintService {
 
         // Publish to Kafka — the EmailNotificationConsumer picks this up
         // and sends the email asynchronously, decoupled from this transaction
-        if( eventProducer != null) {
-            eventProducer.publish(ComplaintEvent.builder()
-                    .eventType(ComplaintEvent.EventType.COMPLAINT_CREATED)
-                    .complaintId(saved.getId())
-                    .complaintTitle(saved.getTitle())
-                    .complaintDescription(saved.getDescription())
-                    .category(saved.getCategory().name())
-                    .priority(saved.getPriority().name())
-                    .status(saved.getStatus().name())
-                    .flatNumber(saved.getFlatNumber())
-                    .slaDeadline(saved.getSlaDeadline().format(FORMATTER))
-                    .residentName(resident.getFullName())
-                    .residentEmail(resident.getEmail())
-                    .build());
-        }
+        publishOrSendDirectly(ComplaintEvent.builder()
+                .eventType(ComplaintEvent.EventType.COMPLAINT_CREATED)
+                .complaintId(saved.getId())
+                .complaintTitle(saved.getTitle())
+                .complaintDescription(saved.getDescription())
+                .category(saved.getCategory().name())
+                .priority(saved.getPriority().name())
+                .status(saved.getStatus().name())
+                .flatNumber(saved.getFlatNumber())
+                .slaDeadline(saved.getSlaDeadline().format(FORMATTER))
+                .residentName(resident.getFullName())
+                .residentEmail(resident.getEmail())
+                .build(), saved);
 
 
         return saved;
@@ -132,24 +133,22 @@ public class ComplaintServiceImpl implements ComplaintService {
         Complaint saved = complaintRepository.save(complaint);
 
         // Publish ASSIGNED event to Kafka
-        if (eventProducer != null) {
-            eventProducer.publish(ComplaintEvent.builder()
-                    .eventType(ComplaintEvent.EventType.COMPLAINT_ASSIGNED)
-                    .complaintId(saved.getId())
-                    .complaintTitle(saved.getTitle())
-                    .complaintDescription(saved.getDescription())
-                    .category(saved.getCategory().name())
-                    .priority(saved.getPriority().name())
-                    .status(saved.getStatus().name())
-                    .flatNumber(saved.getFlatNumber())
-                    .slaDeadline(saved.getSlaDeadline().format(FORMATTER))
-                    .residentName(saved.getResident().getFullName())
-                    .residentEmail(saved.getResident().getEmail())
-                    .workerName(worker.getFullName())
-                    .workerEmail(worker.getEmail())
-                    .workerSpecialization(worker.getSpecialization())
-                    .build());
-        }
+        publishOrSendDirectly(ComplaintEvent.builder()
+                .eventType(ComplaintEvent.EventType.COMPLAINT_ASSIGNED)
+                .complaintId(saved.getId())
+                .complaintTitle(saved.getTitle())
+                .complaintDescription(saved.getDescription())
+                .category(saved.getCategory().name())
+                .priority(saved.getPriority().name())
+                .status(saved.getStatus().name())
+                .flatNumber(saved.getFlatNumber())
+                .slaDeadline(saved.getSlaDeadline().format(FORMATTER))
+                .residentName(saved.getResident().getFullName())
+                .residentEmail(saved.getResident().getEmail())
+                .workerName(worker.getFullName())
+                .workerEmail(worker.getEmail())
+                .workerSpecialization(worker.getSpecialization())
+                .build(), saved);
 
 
         return saved;
@@ -183,18 +182,16 @@ public class ComplaintServiceImpl implements ComplaintService {
         Complaint saved = complaintRepository.save(complaint);
 
         // Publish STATUS_CHANGED event to Kafka
-        if (eventProducer != null){
-            eventProducer.publish(ComplaintEvent.builder()
-                    .eventType(ComplaintEvent.EventType.STATUS_CHANGED)
-                    .complaintId(saved.getId())
-                    .complaintTitle(saved.getTitle())
-                    .status(newStatus.name())
-                    .oldStatus(oldStatus.name())
-                    .newStatus(newStatus.name())
-                    .residentName(saved.getResident().getFullName())
-                    .residentEmail(saved.getResident().getEmail())
-                    .build());
-        }
+        publishOrSendDirectly(ComplaintEvent.builder()
+                .eventType(ComplaintEvent.EventType.STATUS_CHANGED)
+                .complaintId(saved.getId())
+                .complaintTitle(saved.getTitle())
+                .status(newStatus.name())
+                .oldStatus(oldStatus.name())
+                .newStatus(newStatus.name())
+                .residentName(saved.getResident().getFullName())
+                .residentEmail(saved.getResident().getEmail())
+                .build(), saved);
 
 
         return saved;
@@ -224,21 +221,17 @@ public class ComplaintServiceImpl implements ComplaintService {
                 complaint.setEscalationSent(true);
 
                 // Publish OVERDUE event to Kafka
-                if (eventProducer != null){
-                    eventProducer.publish(ComplaintEvent.builder()
-                            .eventType(ComplaintEvent.EventType.COMPLAINT_OVERDUE)
-                            .complaintId(complaint.getId())
-                            .complaintTitle(complaint.getTitle())
-                            .status(complaint.getStatus().name())
-                            .priority(complaint.getPriority().name())
-                            .flatNumber(complaint.getFlatNumber())
-                            .slaDeadline(complaint.getSlaDeadline().format(FORMATTER))
-                            .residentName(complaint.getResident().getFullName())
-                            .workerName(complaint.getWorker() != null
-                                    ? complaint.getWorker().getFullName() : "Not assigned")
-                            .adminEmails(adminEmails)
-                            .build());
-                }
+                publishOrSendDirectly(ComplaintEvent.builder()
+                        .eventType(ComplaintEvent.EventType.COMPLAINT_OVERDUE)
+                        .complaintId(complaint.getId())
+                        .complaintTitle(complaint.getTitle())
+                        .status(complaint.getStatus().name())
+                        .priority(complaint.getPriority().name())
+                        .flatNumber(complaint.getFlatNumber())
+                        .slaDeadline(complaint.getSlaDeadline().format(FORMATTER))
+                        .residentName(complaint.getResident().getFullName())
+                        .adminEmails(adminEmails)
+                        .build(), complaint);
 
             }
             complaintRepository.save(complaint);
@@ -254,5 +247,32 @@ public class ComplaintServiceImpl implements ComplaintService {
     @Override
     public long countOverdue() {
         return complaintRepository.countByOverdueTrue();
+    }
+
+    /**
+     * In local Docker: publishes to Kafka → EmailNotificationConsumer handles email.
+     * In prod (Render): eventProducer is null (disabled via @Profile),
+     * so falls back to calling EmailService directly — same email, different path.
+     */
+    private void publishOrSendDirectly(ComplaintEvent event, Complaint complaint) {
+        if (eventProducer != null) {
+            eventProducer.publish(event);
+        } else {
+            // Direct email fallback for prod where Kafka is not available
+            switch (event.getEventType()) {
+                case COMPLAINT_CREATED ->
+                        emailService.sendComplaintCreatedEmail(complaint);
+                case COMPLAINT_ASSIGNED ->
+                        emailService.sendComplaintAssignedEmail(complaint);
+                case STATUS_CHANGED ->
+                        emailService.sendStatusChangedEmail(
+                                complaint,
+                                event.getOldStatus(),
+                                event.getNewStatus()
+                        );
+                case COMPLAINT_OVERDUE ->
+                        emailService.sendOverdueEscalationEmail(complaint);
+            }
+        }
     }
 }
