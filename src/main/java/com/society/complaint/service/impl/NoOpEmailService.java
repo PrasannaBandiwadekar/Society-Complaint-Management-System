@@ -8,7 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-@ConditionalOnMissingBean(JavaMailSender.class)
+@ConditionalOnMissingBean(SendGridEmailService.class)
 @Slf4j
 public class NoOpEmailService implements EmailService {
 
