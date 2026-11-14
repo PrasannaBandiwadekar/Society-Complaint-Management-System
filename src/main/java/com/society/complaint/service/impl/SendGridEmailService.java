@@ -1,6 +1,9 @@
 package com.society.complaint.service.impl;
 
-import com.sendgrid.*;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
@@ -19,16 +22,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor   // <-- this is what was missing
 @Slf4j
 public class SendGridEmailService implements EmailService {
 
     private final UserRepository userRepository;
 
-    @Value("${sendgrid.api.key}")
+    // Defaults after the colon mean the app still starts when no key is set (local runs)
+    @Value("${sendgrid.api.key:}")
     private String sendGridApiKey;
 
-    @Value("${sendgrid.from.email}")
+    @Value("${sendgrid.from.email:bandiwadekarprasanna@gmail.com}")
     private String fromEmail;
 
     @Value("${app.mail.enabled:true}")
@@ -48,8 +52,7 @@ public class SendGridEmailService implements EmailService {
                 complaint.getId(),
                 complaint.getTitle(),
                 complaint.getPriority(),
-                complaint.getSlaDeadline().format(FORMATTER)
-        );
+                complaint.getSlaDeadline().format(FORMATTER));
         sendEmail(complaint.getResident().getEmail(), subject, body);
     }
 
@@ -62,33 +65,28 @@ public class SendGridEmailService implements EmailService {
                 complaint.getResident().getFullName(),
                 complaint.getTitle(),
                 complaint.getWorker().getFullName(),
-                complaint.getWorker().getSpecialization()
-        );
+                complaint.getWorker().getSpecialization());
         sendEmail(complaint.getResident().getEmail(), subject, body);
 
         String workerBody = String.format(
-                "Hi %s,\n\nComplaint #%d assigned to you.\nTitle: %s\nFlat: %s\n\n"
+                "Hi %s,\n\nComplaint #%d has been assigned to you.\nTitle: %s\nFlat: %s\n\n"
                         + "- Society Maintenance Team",
                 complaint.getWorker().getFullName(),
                 complaint.getId(),
                 complaint.getTitle(),
-                complaint.getFlatNumber()
-        );
+                complaint.getFlatNumber());
         sendEmail(complaint.getWorker().getEmail(),
                 "New Assignment - #" + complaint.getId(), workerBody);
     }
 
     @Override
-    public void sendStatusChangedEmail(Complaint complaint,
-                                       String oldStatus, String newStatus) {
-        String subject = "Complaint #" + complaint.getId()
-                + " Status Updated: " + newStatus;
+    public void sendStatusChangedEmail(Complaint complaint, String oldStatus, String newStatus) {
+        String subject = "Complaint #" + complaint.getId() + " Status Updated: " + newStatus;
         String body = String.format(
-                "Hi %s,\n\nComplaint \"%s\" status changed: %s → %s\n\n"
+                "Hi %s,\n\nComplaint \"%s\" status changed: %s -> %s\n\n"
                         + "- Society Maintenance Team",
                 complaint.getResident().getFullName(),
-                complaint.getTitle(), oldStatus, newStatus
-        );
+                complaint.getTitle(), oldStatus, newStatus);
         sendEmail(complaint.getResident().getEmail(), subject, body);
     }
 
@@ -99,8 +97,7 @@ public class SendGridEmailService implements EmailService {
                 "Complaint #%d \"%s\" has breached its SLA deadline.\n"
                         + "Priority: %s | Status: %s\n\n- Automated SLA Monitor",
                 complaint.getId(), complaint.getTitle(),
-                complaint.getPriority(), complaint.getStatus()
-        );
+                complaint.getPriority(), complaint.getStatus());
         List<User> admins = userRepository.findByRole(Role.ADMIN);
         for (User admin : admins) {
             sendEmail(admin.getEmail(), subject, body);
@@ -108,8 +105,9 @@ public class SendGridEmailService implements EmailService {
     }
 
     private void sendEmail(String to, String subject, String body) {
-        if (!mailEnabled) {
-            log.info("[MAIL DISABLED] Would send to {}", to);
+        if (!mailEnabled || sendGridApiKey.isBlank()) {
+            log.info("[EMAIL SKIPPED - mail disabled or no SendGrid key] To: {} | Subject: {}",
+                    to, subject);
             return;
         }
         try {
